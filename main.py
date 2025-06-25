@@ -50,7 +50,7 @@ def pred_step(model: RubbishClassifier, batch):
 
 if __name__ == "__main__":
     # hyperparameters
-    batch_size = 16
+    batch_size = 64
 
     # Load the data.
     train_dataset = Dataset(root_dir="./data", mode="train")
@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     # Instantiate the model.
     model = RubbishClassifier(num_classes=40, rngs=nnx.Rngs(0))
-    optimizer = nnx.Optimizer(model, optax.adamw(learning_rate=1e-6, b1=0.9))
+    optimizer = nnx.Optimizer(model, optax.adamw(learning_rate=1e-4, b1=0.9))
     metrics = nnx.MultiMetric(
         accuracy=nnx.metrics.Accuracy(),
         loss=nnx.metrics.Average("loss"),
@@ -68,8 +68,8 @@ if __name__ == "__main__":
 
     best_acc = 0
     with ocp.CheckpointManager(
-    os.path.join(os.getcwd(), 'checkpoints/'),
-    options = ocp.CheckpointManagerOptions(max_to_keep=1),
+        os.path.join(os.getcwd(), "checkpoints/"),
+        options=ocp.CheckpointManagerOptions(max_to_keep=1),
     ) as mngr:
         for step, batch in enumerate(train_loader):
             # batch = {"data": jnp.asarray(batch["data"], dtype=jnp.float32), "label": jnp.asarray(batch["label"], dtype=jnp.int32)}
