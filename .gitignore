@@ -2,3 +2,5 @@
 *.json
 *.npy
 __pycache__
+logs
+checkpoints

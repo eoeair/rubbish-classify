@@ -18,6 +18,8 @@ from net import RubbishClassifier
 # load data
 from feeder import Dataset
 
+from tensorboardX import SummaryWriter
+
 def loss_fn(model: RubbishClassifier, batch):
     logits = model(batch["data"])
     loss = optax.softmax_cross_entropy_with_integer_labels(logits=logits, labels=batch["label"]).mean()
@@ -43,7 +45,9 @@ def pred_step(model: RubbishClassifier, batch):
 
 if __name__ == "__main__":
     # hyperparameters
-    batch_size = 8
+    batch_size = 64
+
+    writer = SummaryWriter(log_dir="./logs")
 
     # Load the data.
     train_dataset = Dataset(root_dir="./data", mode="train")
@@ -65,13 +69,16 @@ if __name__ == "__main__":
     ) as mngr:
         for step, batch in enumerate(train_loader):
             train_step(model, optimizer, metrics, batch)
-            val_loader = dataloader.DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_epochs=1)
+            train_metrics = metrics.compute()
+            writer.add_scalar("train/loss", train_metrics["loss"], step)
+            writer.add_scalar("train/accuracy", train_metrics["accuracy"], step)
             if step > 0 and step % 500 == 0:
-                train_metrics = metrics.compute()
                 print("Step:{}_Train Acc@1: {} loss: {} ".format(step, train_metrics["accuracy"], train_metrics["loss"]))
-                metrics.reset()  # Reset the metrics for the train set.
+            metrics.reset()  # Reset the metrics for the train set.
 
+            if step > 0 and step % 500 == 0:
                 # Compute the metrics on the test set after each training epoch.
+                val_loader = dataloader.DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_epochs=1)
                 for val_batch in val_loader:
                     eval_step(model, metrics, val_batch)
                 val_metrics = metrics.compute()
