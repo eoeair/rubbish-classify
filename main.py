@@ -106,16 +106,15 @@ if __name__ == "__main__":
     val_dataset = Dataset(root_dir="./data", mode="val")
 
     # Instantiate the model.
-    # 注意：这里应该使用12个类别而不是4个
-    model = RubbishClassifier(num_classes=12, rngs=nnx.Rngs(0))
-    optimizer = nnx.Optimizer(model, optax.adamw(learning_rate=1e-6, b1=0.9))
+    model = RubbishClassifier(num_classes=12, rngs=nnx.Rngs(42))
+    optimizer = nnx.Optimizer(model, optax.adamw(learning_rate=5e-5, b1=0.9))
     metrics = nnx.MultiMetric(
         accuracy=nnx.metrics.Accuracy(),
         loss=nnx.metrics.Average("loss"),
     )
 
     best_acc = 0
-    train_loader = dataloader.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_epochs=50)
+    train_loader = dataloader.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_epochs=75)
 
     with ocp.CheckpointManager(
         os.path.join(os.getcwd(), "checkpoints/"),
@@ -146,7 +145,6 @@ if __name__ == "__main__":
                     best_acc = val_metrics["accuracy"]
                     _, state = nnx.split(model)
                     mngr.save(step, args=ocp.args.StandardSave(state))
-                    print(f"新的最佳验证准确率: {best_acc:.4f}, 模型已保存")
 
                 metrics.reset()  # Reset the metrics for the val set.
 
