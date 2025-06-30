@@ -142,7 +142,7 @@ def label(xy, text, xy_off=[0, 4]):
 
 if __name__ == "__main__":
 
-    fc_unit_size = 2  # int : Neuron size
+    fc_unit_size = 3  # int : Neuron size
     layer_width = 40  # int: Size of separation between each layer
     flag_omit = True  # bool : Omit or not in between filters (feature maps)/neurons. If False, NumDots = 0.
 
@@ -154,8 +154,8 @@ if __name__ == "__main__":
 
     ############################
     # conv layers
-    size_list = [(32, 32), (18, 18), (10, 10), (6, 6), (4, 4)]  # List of images size. Must have same size as num_list
-    num_list = [3, 32, 32, 48, 48]  # List with number of feature maps per layer. Must have same size as size_list
+    size_list = [(224, 224), (112, 112), (56, 56), (28, 28), (14, 14), (14, 14)]  # List of images size. Must have same size as num_list
+    num_list = [3, 32, 64, 128, 256, 512]  # List with number of feature maps per layer. Must have same size as size_list
     x_diff_list = [0, layer_width, layer_width, layer_width, layer_width]  # Must have same size as size_list and num_list
     text_list = ["Inputs"] + ["Feature\nmaps"] * (len(size_list) - 1)  # Text on top of each layer
     loc_diff_list = [[3, -3]] * len(size_list)  # Amount of x and y displacement between each layer
@@ -179,16 +179,18 @@ if __name__ == "__main__":
         [0.4, 0.8],
         [0.4, 0.5],
         [0.4, 0.8],
+        [0.4, 0.5],
     ]  # x, y coordinates of kernels start position. Given in fraction of filter size. Must have same size as end_ratio_list
     end_ratio_list = [
         [0.4, 0.5],
         [0.4, 0.8],
         [0.4, 0.5],
         [0.4, 0.8],
+        [0.4, 0.5],
     ]  # x, y coordinates of kernels mapping into next layer. Given in fraction of filter size. Must have same size as start_ratio_list
-    patch_size_list = [(5, 5), (2, 2), (5, 5), (2, 2)]  # List of kernels size. Must have same size as start_ratio_list and end_ratio_list
+    patch_size_list = [(3, 3), (3, 3), (3, 3), (3, 3), (3, 3)]  # List of kernels size. Must have same size as start_ratio_list and end_ratio_list
     ind_bgn_list = range(len(patch_size_list))
-    text_list = ["Convolution", "Max-pooling", "Convolution", "Max-pooling"]  # Text in between layers with text of what each layer is doing
+    text_list = ["Conv+Max-pooling", "Conv+Max-pooling", "Conv+Max-pooling", "Conv+Max-pooling", "Conv+Max-pooling"]  # Text in between layers with text of what each layer is doing
 
     for ind in range(len(patch_size_list)):
         add_mapping(patches, colors, start_ratio_list[ind], end_ratio_list[ind], patch_size_list[ind], ind, top_left_list, loc_diff_list, num_show_list, size_list)
@@ -200,8 +202,8 @@ if __name__ == "__main__":
 
     ############################
     # fully connected layers
-    size_list = [(fc_unit_size, fc_unit_size)] * 3  # Specify number of layers. Must equal num_list and x_diff_list size
-    num_list = [768, 500, 2]  # Number of neurons in each fully connected layer. Must have same size as size_list
+    size_list = [(fc_unit_size, fc_unit_size)] * 4  # Specify number of layers. Must equal num_list and x_diff_list size
+    num_list = [512, 256, 128, 12]  # Number of neurons in each fully connected layer. Must have same size as size_list
     num_show_list = list(map(min, num_list, [NumFcMax] * len(num_list)))
     x_diff_list = [sum(x_diff_list) + layer_width, layer_width, layer_width, layer_width]  # Must have same size as size_list and num_list
     top_left_list = np.c_[np.cumsum(x_diff_list), np.zeros(len(x_diff_list))]
@@ -217,7 +219,7 @@ if __name__ == "__main__":
             add_layer(patches, colors, size=size_list[ind], num=num_show_list[ind], top_left=top_left_list[ind], loc_diff=loc_diff_list[ind])
         label(top_left_list[ind], text_list[ind] + "\n{}".format(num_list[ind]))
 
-    text_list = ["Flatten\n", "Fully\nconnected", "Fully\nconnected"]  # Text in between each layer. Must have same size as size_list
+    text_list = ["Max-pooling\n", "Fully\nconnected", "Fully\nconnected", "Fully\nconnected"]  # Text in between each layer. Must have same size as size_list
 
     for ind in range(len(size_list)):
         label(top_left_list[ind], text_list[ind], xy_off=[-10, -65])  # xy_off: displacement of layer description. If [0,0], text position equals of top text
